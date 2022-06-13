@@ -1,0 +1,67 @@
+.loader-element {
+
+
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-element h1 {
+
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size: 5rem;
+    color: rgb(43, 41, 41);
+    margin: 0;
+}
+
+.loader-box {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.loader-box-1 {
+    width: 20px;
+    height: 20px;
+    background-color: rgb(43, 41, 41);
+    margin-top: 50%;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    animation-name: loader;
+    animation-duration: 4s;
+}
+
+.loader-box-2 {
+    width: 20px;
+    height: 20px;
+    background-color: rgb(43, 41, 41);
+    margin-top: 50%;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    animation-name: loader;
+    animation-duration: 4s;
+    animation-delay: 4s;
+}
+
+.loader-box-3 {
+    width: 20px;
+    height: 20px;
+    background-color: rgb(43, 41, 41);
+    margin-top: 50%;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    animation-name: loader;
+    animation-duration: 4s;
+    animation-delay: 8s;
+}
+
+@keyframes loader {
+    from {
+        background-color: rgb(43, 41, 41);
+    }
+
+    to {
+        background-color: white;
+    }
+
+}
