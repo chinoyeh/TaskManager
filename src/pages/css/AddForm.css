@@ -80,3 +80,44 @@
 .close {
     display: none;
 }
+
+.dropdown {
+    margin: 0.5em;
+    border: 1px solid gray;
+    height: 2em;
+    padding: 0.2em;
+    background: white;
+}
+
+.dropdown button {
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+
+}
+
+.hide {
+    display: none;
+}
+
+.showList {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-top: 1em;
+
+    margin-left: -5px !important;
+    border: 1px solid rgb(99, 98, 98);
+    background: white;
+    width: 28.5em;
+    padding: 0.2em;
+}
+
+.item {
+    margin-top: 0em;
+}
+
+.item :hover {
+    background: rgb(200, 227, 238);
+}

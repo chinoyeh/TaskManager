@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useSelector, useDispatch } from "react-redux"
+
 import { Login } from "./actions/taskManager"
 import Loader from './utils/Loader'
 import Task from './pages/Task'
@@ -7,24 +7,34 @@ import Task from './pages/Task'
 
 
 const App = (props) => {
-  const dispatch = useDispatch()
+
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [logged, setLogged] = useState(false)
   const userLogin = async () => {
     setLoading(true)
-    try {
-      await dispatch(Login("smithwills1989@gmail.com", "12345678"))
-        .then(() => {
+    Login("smithwills1989@gmail.com", "12345678")
+      .then((response) => {
 
-          setLoading(false)
-        })
-    }
+        setLoading(false)
+        console.log(response.type, 'App response')
+        if (response.type === 'LOGIN_SUCESS') {
+          setErrorMessage('')
+          setLogged(true)
 
-    catch {
+        }
+        else {
+          setTimeout(function () {
+            setErrorMessage('Login Failed')
+            setLoading(false)
+          }, 2500)
+        }
 
-      alert('failed')
-      setLoading(false)
+      })
 
-    }
+
+
+
   }
   useEffect(() => {
     userLogin()
@@ -33,13 +43,21 @@ const App = (props) => {
 
   return (
     <React.Fragment>
+      {logged === false &&
+        <Loader loading={loading} />
 
-      {loading ? true &&
-        <Loader />
-        :
-        <Task />
 
       }
+      {logged === true &&
+        <>
+          <p style={{ color: 'red' }}>{errorMessage}</p>
+          <Task /></>
+
+      }
+
+
+
+
     </React.Fragment>
   )
 }

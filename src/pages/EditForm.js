@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { GetTask, EditTask, DeleteTask, AllUsers } from '../actions/taskManager'
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
 import './css/AddForm.css'
 
 const EditForm = (props) => {
@@ -10,18 +11,21 @@ const EditForm = (props) => {
     const [assignUserId, setAssignUserId] = useState('')
     const [taskDetails, setTaskDetails] = useState([])
     const [showPage, setShowPage] = useState(true)
-    const tog_page = () => {
-        setShowPage(!showPage)
-    }
+    const [errorMessage, setErrorMessage] = useState('')
+    const [assign_dropdown, setAssign_dropdown] = useState(false)
+    const [assignUserName, setAssignUserName] = useState('')
+
+
 
     const getAllUsers = async () => {
         try {
             const data = await AllUsers()
-            console.log(data)
             setAssignUser(data.payload.data)
         }
         catch {
-            console.log("getat")
+            setTimeout(function () {
+                setErrorMessage('Failed to load Assigned Users')
+            })
         }
     }
     const timeConvert = (time) => {
@@ -31,6 +35,10 @@ const EditForm = (props) => {
         return (hours + minutes)
     }
     const offset = Math.abs((new Date()).getTimezoneOffset() * 60)
+    const changeUser = (user) => {
+        setAssignUserId(user.id)
+        setAssignUserName(user.first)
+    }
     const cancel = (e) => {
         e.preventDefault()
         setAssignUserId('')
@@ -43,12 +51,11 @@ const EditForm = (props) => {
         const taskId = JSON.parse(localStorage.getItem("task_id"))
         try {
             const res = await GetTask(taskId)
-            console.log(res, 'res')
-            setTaskDetails(res)
+
+            setTaskDetails(res.payload)
         }
         catch {
-
-            alert('failed')
+            setErrorMessage('Failed to load task')
         }
     }
     useEffect(() => {
@@ -60,12 +67,22 @@ const EditForm = (props) => {
         const taskId = JSON.parse(localStorage.getItem("task_id"))
         try {
             const res = await DeleteTask(taskId)
-            console.log(res, 'res')
-            tog_page()
+            if (res.type === 'DELETE_TASK') {
+
+
+            }
+            else {
+                setTimeout(function () {
+                    setErrorMessage('Failed to Delete Test')
+                }, 2500)
+            }
+
         }
         catch {
-            alert('failed')
-            tog_page()
+
+            setTimeout(function () {
+                setErrorMessage('Delete to Edit Test')
+            }, 2500)
         }
 
     }
@@ -75,10 +92,22 @@ const EditForm = (props) => {
         try {
             const res = await EditTask(taskId, assignUserId, date, timeConvert(time), 0, offset, description)
 
+            if (res.type === 'EDIT_TASK') {
+
+
+            }
+            else {
+                setTimeout(function () {
+                    setErrorMessage('Failed to Edit Test')
+                }, 2500)
+            }
+
         }
         catch {
 
-            alert('failed')
+            setTimeout(function () {
+                setErrorMessage('Failed to Edit Test')
+            }, 2500)
         }
     }
     if (props.show === false) {
@@ -86,6 +115,7 @@ const EditForm = (props) => {
     }
     return (
         <form className={showPage === true ? 'add-task-form' : 'close'}>
+            <p style={{ color: 'red' }}>{errorMessage}</p>
             <label htmlFor='description'>
                 Task description
             </label>
@@ -106,16 +136,24 @@ const EditForm = (props) => {
                 Assign User
             </label>
 
-            <div className='assign'>
-                {assignUser.map((user) => {
-                    return (<h1 key={user.id} onClick={() => {
-                        setAssignUserId(user.id)
-                        console.log(assignUserId)
-                    }}>{user.first}</h1>)
-                })
+            <Dropdown
+                isOpen={assign_dropdown}
+                toggle={() => setAssign_dropdown(!assign_dropdown)}
+                className='dropDown'
+            >
+                <DropdownToggle caret>
 
-                }
-            </div>
+                    {assignUserName || taskDetails.assigned_user}
+                </DropdownToggle>
+                <DropdownMenu className={assign_dropdown ? 'show' : 'hide'}>
+                    {
+                        assignUser.map(user =>
+                            <DropdownItem className='item' onClick={() => changeUser(user)}>{user.first}</DropdownItem>
+                        )
+                    }
+
+                </DropdownMenu>
+            </Dropdown>
 
 
 
@@ -123,7 +161,7 @@ const EditForm = (props) => {
                 <button onClick={(e) => deleteTask(e)} style={{ color: 'black', background: 'none', border: 'none' }}><i className="fa fa-trash-alt"></i></button>
                 <div className='form-action'>
                     <button style={{ color: 'black', background: 'none', border: 'none' }} onClick={(e) => cancel(e)}>Cancel</button>
-                    <button style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em' }} onClick={(e) => editTask(e)}>Save</button>
+                    <button style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em' }} onClick={(e) => editTask(e)}>Edit</button>
                 </div>
             </div>
 

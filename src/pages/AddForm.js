@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { AddTask, AllUsers } from '../actions/taskManager'
-import { useSelector, useDispatch } from "react-redux"
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
+
+import Select from 'react-select';
 import './css/AddForm.css'
 
 const AddForm = (props) => {
@@ -9,17 +11,23 @@ const AddForm = (props) => {
     const [time, setTime] = useState('')
     const [assignUser, setAssignUser] = useState([])
     const [assignUserId, setAssignUserId] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
+    const [assign_dropdown, setAssign_dropdown] = useState(false)
+    const [assignUserName, setAssignUserName] = useState('')
 
-    const dispatch = useDispatch()
+
+
 
     const getAllUsers = async () => {
         try {
             const data = await AllUsers()
-            console.log(data)
+
             setAssignUser(data.payload.data)
         }
         catch {
-            console.log("getat")
+            setTimeout(function () {
+                setErrorMessage('Failed to load Assigned Users')
+            })
         }
     }
     const timeConvert = (time) => {
@@ -37,29 +45,49 @@ const AddForm = (props) => {
     }
 
     const offset = Math.abs((new Date()).getTimezoneOffset() * 60)
+    const changeUser = (user) => {
+        setAssignUserId(user.id)
+        setAssignUserName(user.first)
+    }
     const cancel = (e) => {
         e.preventDefault()
         setAssignUserId('')
         setDate('')
         setTime('')
         setDescription('')
+        this.props.show = false
+
     }
 
     const addTask = async (e) => {
         e.preventDefault()
         try {
-            const res = await AddTask(assignUserId, date, timeConvert(time), 0, offset, description)
-            console.log(res, 'response')
+            const res = await AddTask(localStorage.getItem('assign user id'), date, timeConvert(time), 0, offset, description)
+            if (res.type === 'ADD_TASK') {
+                setAssignUserId('')
+                setDate('')
+                setTime('')
+                setDescription('')
+
+            }
+            else {
+                setTimeout(function () {
+                    setErrorMessage('Failed to Add Test')
+                }, 2500)
+            }
 
         }
         catch {
 
-            alert('failed')
+            setTimeout(function () {
+                setErrorMessage('Failed to Add Test')
+            }, 2500)
         }
 
     }
     return (
-        <form className='add-task-form'>
+        <form className='add-task-form'  >
+            <p style={{ color: 'red' }}>{errorMessage}</p>
             <label htmlFor='description'>
                 Task description
             </label>
@@ -80,21 +108,36 @@ const AddForm = (props) => {
                 Assign User
             </label>
 
-            {assignUser.map((user) => {
-                return (<h1 key={user.id} onClick={() => {
-                    setAssignUserId(user.id)
-                    console.log(assignUserId)
-                }}>{user.first}</h1>)
-            })
+            <Dropdown
+                isOpen={assign_dropdown}
+                toggle={() => setAssign_dropdown(!assign_dropdown)}
+                className='dropDown'
+            >
+                <DropdownToggle caret>
+                    {assignUserName === '' &&
+                        <div>
+                            Select User
+                        </div>
+                    }
+                    {assignUserName}
+                </DropdownToggle>
+                <DropdownMenu className={assign_dropdown ? 'show' : 'hide'}>
+                    {
+                        assignUser.map(user =>
+                            <DropdownItem className='item' onClick={() => changeUser(user)}>{user.first}</DropdownItem>
+                        )
+                    }
 
-            }
+                </DropdownMenu>
+            </Dropdown>
+
 
 
 
             <div className='add-buttons'>
                 <div className='form-action'>
                     <button style={{ color: 'black', background: 'none', border: 'none' }} onClick={(e) => cancel(e)}>Cancel</button>
-                    <button style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em' }} onClick={(e) => addTask(e)}>Save</button>
+                    <button disabled={assignUserId === '' || date === "" || time === "" || description === ''} style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em', cursor: 'pointer' }} onClick={(e) => addTask(e)}>Save</button>
                 </div>
             </div>
 
