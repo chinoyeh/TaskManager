@@ -8,7 +8,7 @@ const CircleLoader = (props) => {
 
     else {
         return (
-            <div class="loader"></div>
+            <div class="lds-ripple"><div></div><div></div></div>
         )
     }
 }

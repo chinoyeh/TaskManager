@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { GetAllTask, AddTask, AllUsers, GetTask, EditTask, DeleteTask, } from '../actions/taskManager'
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, Modal, ModalBody } from 'reactstrap';
+import SuccessNotification from '../utils/SuccessNotification';
+import ErrorNotification from '../utils/ErrorNotification';
 
 import './css/Task.css'
 import './css/AddForm.css'
@@ -18,23 +20,49 @@ const Task = () => {
     const [taskDetails, setTaskDetails] = useState([])
     const [description, setDescription] = useState('')
     const [date, setDate] = useState('')
+    const [taskId, setTaskId] = useState('')
     const [time, setTime] = useState('')
     const [assignUser, setAssignUser] = useState([])
     const [assignUserId, setAssignUserId] = useState('')
-
+    const [modalSuccess, setModalSuccess] = useState(false)
+    const [modalData, setModalData] = useState('')
+    const [modalError, setModalError] = useState(false)
     const [assign_dropdown, setAssign_dropdown] = useState(false)
     const [assignUserName, setAssignUserName] = useState('')
+    const success = (res) => {
+        if (res !== null) {
+            modalSuccess(true)
+            setTimeout(function () {
+                setModalSuccess(false)
+                setModalData('')
+            }, 2500)
+        }
+        else if (res.data = 'error') {
+            modalError(true)
+            setTimeout(function () {
+                setModalError(false)
+                setModalData('')
 
+            }, 2500)
+        }
+    }
     const tog_add = () => {
         setShowForm(!showForm)
     }
-    const tog_edit = () => {
+
+    const forceUpdate = React.useCallback(() => setTaskId(), []);
+    const Tog_edit = () => {
+
         setShowEdit(!showEdit)
-        localStorage.setItem('task_id', '')
-        if (showEdit === true) {
-            getTask()
-        }
+
+
+
+
     }
+    useEffect(() => {
+        getTask()
+    }, [taskId])
+
     const getAllTask = async () => {
         setLoading(true)
         try {
@@ -70,6 +98,7 @@ const Task = () => {
 
     useEffect(() => {
         getAllTask()
+
 
 
     }, [])
@@ -108,6 +137,7 @@ const Task = () => {
     const changeUser = (user) => {
         setAssignUserId(user.id)
         setAssignUserName(user.first)
+        localStorage.setItem('assign user id', (user.id))
     }
     const cancel = (e) => {
         e.preventDefault()
@@ -125,18 +155,19 @@ const Task = () => {
         e.preventDefault()
         try {
             const res = await AddTask(localStorage.getItem('assign user id'), date, timeConvert(time), 0, offset, description)
+
+            console.log(res)
             if (res.type === 'ADD_TASK') {
                 setAssignUserId('')
                 setDate('')
                 setTime('')
                 setDescription('')
+                setModalData('Task Added Successfully')
                 tog_add()
 
             }
             else {
-                setTimeout(function () {
-                    setErrorMessage('Failed to Add Task')
-                }, 2500)
+
             }
 
         }
@@ -163,12 +194,12 @@ const Task = () => {
         setDate('')
         setTime('')
         setDescription('')
-        tog_edit()
+        Tog_edit()
 
     }
 
     const getTask = async () => {
-        const taskId = JSON.parse(localStorage.getItem("task_id"))
+
         console.log(taskId)
         try {
             const res = await GetTask(taskId)
@@ -187,25 +218,26 @@ const Task = () => {
     }, [])
     const deleteTask = async (e) => {
         e.preventDefault()
-        const taskId = JSON.parse(localStorage.getItem("task_id"))
+
         try {
             const res = await DeleteTask(taskId)
+
             if (res.type === 'DELETE_TASK') {
-                tog_edit()
+                Tog_edit()
+                getAllTask()
+                setModalData('Task deleted Successfully')
 
             }
             else {
-                setTimeout(function () {
-                    setErrorMessage('Failed to Delete Task')
-                }, 2500)
+                setModalData('Task was not Deleted')
             }
 
         }
         catch {
 
-            setTimeout(function () {
-                setErrorMessage('Delete to Edit Task')
-            }, 2500)
+            setTimeout(
+                setErrorMessage('Kindly Check your Internet')
+                , 2500)
         }
 
     }
@@ -217,7 +249,8 @@ const Task = () => {
 
             if (res.type === 'EDIT_TASK') {
 
-                tog_edit()
+                Tog_edit()
+                getAllTask()
             }
             else {
                 setTimeout(function () {
@@ -234,17 +267,22 @@ const Task = () => {
         }
     }
     return (
-        <React.Fragment>
+        <div className='container'>
+
+            <div className='loader-circle'>
+                <h1>Task-Manager <i className="fa fa-tasks" ></i></h1>
+                < CircleLoader loading={loading} />
+            </div>
+
 
 
             <div className='task-box'>
 
                 <h2>Task <span>{allTask.length}</span></h2>
-                <div className='loader-circle'>
-                    < CircleLoader loading={loading} />
-                </div>
 
-                <button onClick={tog_add}>+</button>
+
+                <button onClick={tog_add}><i className='fa fa-plus'></i></button>
+
 
             </div>
             <Modal size="lg" style={{ maxWidth: '600px', width: '100%', }}
@@ -255,7 +293,7 @@ const Task = () => {
             >
                 <ModalBody className="reset-password " style={{ margin: 'auto' }}>
                     <form className='add-task-form'  >
-                        <p style={{ color: 'red' }}>{errorMessage}</p>
+                        <h1>Add Task</h1>
                         <label htmlFor='description'>
                             Task description
                         </label>
@@ -304,8 +342,8 @@ const Task = () => {
 
                         <div className='add-buttons'>
                             <div className='form-action'>
-                                <button style={{ color: 'black', background: 'none', border: 'none' }} onClick={(e) => cancel(e)}>Cancel</button>
-                                <button disabled={assignUserId === '' || date === "" || time === "" || description === ''} style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em', cursor: 'pointer' }} onClick={(e) => addTask(e)}>Save</button>
+                                <button style={{ color: 'black', background: 'none', border: '1px solid rgb(168, 223, 195)', padding: '0.7em', cursor: 'pointer', borderRadius: '10px', width: '7em', marginRight: '2em' }} onClick={(e) => cancel(e)}>Cancel</button>
+                                <button disabled={assignUserId === '' || date === "" || time === "" || description === ''} style={{ color: 'white', background: 'rgb(168, 223, 195)', border: 'rgb(168, 223, 195)', padding: '0.7em', cursor: 'pointer', borderRadius: '10px', width: '7em', margin: '1em auto' }} onClick={(e) => addTask(e)}>Save</button>
                             </div>
                         </div>
 
@@ -329,10 +367,14 @@ const Task = () => {
 
                                 <div className='task-details'>
                                     <h3>{task.task_msg}</h3>
-                                    <h3 style={{ color: 'red' }}>{task.task_date}</h3>
+                                    <h3 style={{ color: 'rgb(168, 223, 195)', fontFamily: 'cursive', fontWeight: '600', fontSize: '0.7em' }}>{task.task_date}</h3>
                                 </div>
                                 <div className='task-button'>
-                                    <button onClick={() => { localStorage.setItem("task_id", JSON.stringify(task.id)); setShowEdit(!showEdit) }}><i className="fa fa-edit"></i></button>
+                                    <button onClick={() => {
+
+                                        setTaskId(task.id)
+                                            ; setShowEdit(!showEdit)
+                                    }}><i className="fa fa-edit"></i></button>
                                     <button><i className="fa fa-check"></i></button>
                                     <button><i className="fa fa-archive"></i></button>
                                 </div>
@@ -348,11 +390,11 @@ const Task = () => {
 
             <Modal
                 isOpen={showEdit}
-                toggle={tog_edit}
+                toggle={Tog_edit}
             >
                 <ModalBody>
                     <form className='add-task-form' >
-                        <p style={{ color: 'red' }}>{errorMessage}</p>
+                        <h1>Edit Task</h1>
                         <label htmlFor='description'>
                             Task description
                         </label>
@@ -395,17 +437,19 @@ const Task = () => {
 
 
                         <div className='form-buttons'>
-                            <button onClick={(e) => deleteTask(e)} style={{ color: 'black', background: 'none', border: 'none' }}><i className="fa fa-trash-alt"></i></button>
+                            <button onClick={(e) => deleteTask(e)} style={{ color: 'rgb(168, 223, 195)', background: 'none', border: 'none', cursor: 'pointer' }}><i className="fa fa-trash-alt"></i></button>
                             <div className='form-action'>
-                                <button style={{ color: 'black', background: 'none', border: 'none' }} onClick={(e) => cancelEdit(e)}>Cancel</button>
-                                <button style={{ color: 'white', background: 'green', border: 'green', padding: '0.5em' }} onClick={(e) => editTask(e)}>Edit</button>
+                                <button style={{ color: 'black', background: 'none', border: '1px solid rgb(168, 223, 195)', padding: '0.7em', cursor: 'pointer', borderRadius: '10px', width: '7em', marginRight: '2em' }} onClick={(e) => cancelEdit(e)}>Cancel</button>
+                                <button style={{ color: 'white', background: 'rgb(168, 223, 195)', border: 'rgb(168, 223, 195)', padding: '0.7em', cursor: 'pointer', borderRadius: '10px', width: '7em', margin: '1em auto' }} onClick={(e) => editTask(e)}>Edit</button>
                             </div>
                         </div>
 
                     </form>
                 </ModalBody>
             </Modal>
-        </React.Fragment>
+            <SuccessNotification modalState={modalSuccess}>{modalData}</SuccessNotification>
+            <ErrorNotification modalState={modalError}>{modalData}</ErrorNotification>
+        </div>
     )
 }
 
