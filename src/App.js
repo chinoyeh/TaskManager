@@ -24,10 +24,10 @@ const App = (props) => {
 
         }
         else {
-          setTimeout(function () {
-            setErrorMessage('Login Failed')
-            setLoading(false)
-          }, 2500)
+          // setTimeout(function () {
+          setErrorMessage('Login Failed')
+          //   setLoading(false)
+          // }, 2500)
         }
 
       })
@@ -44,14 +44,22 @@ const App = (props) => {
   return (
     <React.Fragment>
       {logged === false &&
-        <Loader loading={loading} />
+        <>
+
+          <Loader loading={loading} />
+          <p style={{ color: '#d26466', fontSize: '2em', fontWeight: 'bold', marginLeft: '0.5em', textAlign: 'center' }}>{errorMessage}</p>
+
+        </>
+
+
+
 
 
       }
       {logged === true &&
-        <>
-          <p style={{ color: 'red' }}>{errorMessage}</p>
-          <Task /></>
+
+
+        <Task />
 
       }
 

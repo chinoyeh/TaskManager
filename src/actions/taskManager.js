@@ -39,7 +39,7 @@ export const GetAllTask = () => {
 export const AddTask = (assigned_user, task_date, task_time, is_completed, time_zone, task_msg) => {
     return addTask(assigned_user, task_date, task_time, is_completed, time_zone, task_msg).then(
         (data) => {
-            console.log(data, 'data')
+
             return {
                 type: ADD_TASK,
                 payload: data
@@ -60,7 +60,7 @@ export const GetTask = (taskId) => {
 export const EditTask = (taskId, assigned_user, task_date, task_time, is_completed, time_zone, task_msg) => {
     return editTask(taskId, assigned_user, task_date, task_time, is_completed, time_zone, task_msg).then(
         (data) => {
-            console.log(data, 'data')
+
             return {
                 type: EDIT_TASK,
                 payload: data

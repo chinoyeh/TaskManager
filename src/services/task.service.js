@@ -15,7 +15,7 @@ export const allUsers = () => {
         .get(endpoint, { headers: authHeader() })
 
         .then((response) => {
-            console.log(response, 'allUsers')
+
             return response
         })
 }
@@ -32,7 +32,7 @@ export const getAllTask = () => {
         .get(endpoint, { headers: authHeader() })
 
         .then((response) => {
-            console.log(response, 'allTask')
+
             return response
         })
 }
@@ -53,7 +53,7 @@ export const addTask = (assigned_user, task_date, task_time, is_completed, time_
     return axios
         .post(endpoint, body, headers)
         .then((response) => {
-            console.log(response)
+
             return response
         })
 }
@@ -69,7 +69,7 @@ export const getTask = (taskId) => {
         .get(endpoint, { headers: authHeader() })
 
         .then((response) => {
-            console.log(response)
+
             return response
         })
 
@@ -84,13 +84,15 @@ export const editTask = (taskId, assigned_user, task_date, task_time, is_complet
     const endpoint = baseUrl + '/' + taskId + "?company_id=" + companyId
     const body = { assigned_user, task_date, task_time, is_completed, time_zone, task_msg }
 
+
     const headers = {
 
         headers: authHeader()
     }
+    return axios
         .put(endpoint, body, headers)
         .then((response) => {
-            console.log(response)
+
             return response
         })
 
@@ -106,7 +108,7 @@ export const deleteTask = (taskId) => {
         .delete(endpoint, { headers: authHeader() })
 
         .then((response) => {
-            console.log(response)
+
             return response
         })
 

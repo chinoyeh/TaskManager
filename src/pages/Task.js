@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { GetAllTask, AddTask, AllUsers, GetTask, EditTask, DeleteTask, } from '../actions/taskManager'
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, Modal, ModalBody } from 'reactstrap';
-import SuccessNotification from '../utils/SuccessNotification';
-import ErrorNotification from '../utils/ErrorNotification';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Modal, ModalBody } from 'reactstrap';
+
 
 import './css/Task.css'
 import './css/AddForm.css'
@@ -16,6 +15,9 @@ const Task = () => {
     const [showForm, setShowForm] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const [addErrorMessage, setAddErrorMessage] = useState('')
+    const [editErrorMessage, setEditErrorMessage] = useState('')
+
     const [loading, setLoading] = useState(false)
     const [taskDetails, setTaskDetails] = useState([])
     const [description, setDescription] = useState('')
@@ -24,33 +26,16 @@ const Task = () => {
     const [time, setTime] = useState('')
     const [assignUser, setAssignUser] = useState([])
     const [assignUserId, setAssignUserId] = useState('')
-    const [modalSuccess, setModalSuccess] = useState(false)
-    const [modalData, setModalData] = useState('')
-    const [modalError, setModalError] = useState(false)
+
     const [assign_dropdown, setAssign_dropdown] = useState(false)
     const [assignUserName, setAssignUserName] = useState('')
-    const success = (res) => {
-        if (res !== null) {
-            modalSuccess(true)
-            setTimeout(function () {
-                setModalSuccess(false)
-                setModalData('')
-            }, 2500)
-        }
-        else if (res.data = 'error') {
-            modalError(true)
-            setTimeout(function () {
-                setModalError(false)
-                setModalData('')
+    const [assigned_user_id, setAssigned_user_id] = useState('')
+    const [taskTime, setTaskTime] = useState('')
 
-            }, 2500)
-        }
-    }
     const tog_add = () => {
         setShowForm(!showForm)
     }
 
-    const forceUpdate = React.useCallback(() => setTaskId(), []);
     const Tog_edit = () => {
 
         setShowEdit(!showEdit)
@@ -65,6 +50,7 @@ const Task = () => {
 
     const getAllTask = async () => {
         setLoading(true)
+        setErrorMessage('')
         try {
 
             const data = await GetAllTask()
@@ -76,9 +62,7 @@ const Task = () => {
             else {
                 setLoading(false)
                 setAllTask([])
-                setTimeout(function () {
-                    setErrorMessage('Failed to load task')
-                }, 2500)
+
             }
 
         }
@@ -86,9 +70,7 @@ const Task = () => {
         catch {
 
             setLoading(false)
-            setTimeout(function () {
-                setErrorMessage('Check your Internet Connection')
-            }, 2500)
+            setErrorMessage('Kindly check your internet connection')
 
 
 
@@ -108,30 +90,32 @@ const Task = () => {
 
 
     const getAllUsers = async () => {
+        setLoading(true)
+        setErrorMessage('')
         try {
             const data = await AllUsers()
 
             setAssignUser(data.payload.data)
+            setLoading(false)
         }
         catch {
-            setTimeout(function () {
-                setErrorMessage('Failed to load Assigned Users')
-            }, 2500)
+            setLoading(false)
+            setErrorMessage('Kindly Check your Internet connection')
         }
     }
     const timeConvert = (time) => {
-        let hours = (time.slice(0, 2)) * 60
+        let hours = (time.slice(0, 2)) * 3600
         let minutes = (time.slice(3)) * 60
 
         return (hours + minutes)
     }
+
     useEffect(() => {
         getAllUsers()
+
     }, [])
 
-    // if (props.show === false) {
-    //     return null
-    // }
+
 
     const offset = Math.abs((new Date()).getTimezoneOffset() * 60)
     const changeUser = (user) => {
@@ -152,18 +136,22 @@ const Task = () => {
     }
 
     const addTask = async (e) => {
+        setLoading(true)
         e.preventDefault()
+        setAddErrorMessage('')
         try {
             const res = await AddTask(localStorage.getItem('assign user id'), date, timeConvert(time), 0, offset, description)
 
-            console.log(res)
+
             if (res.type === 'ADD_TASK') {
+                getAllTask()
                 setAssignUserId('')
                 setDate('')
                 setTime('')
                 setDescription('')
-                setModalData('Task Added Successfully')
+
                 tog_add()
+                setLoading(false)
 
             }
             else {
@@ -173,9 +161,8 @@ const Task = () => {
         }
         catch {
 
-            setTimeout(function () {
-                setErrorMessage('Failed to Add Task')
-            }, 2500)
+            setLoading(false)
+            setAddErrorMessage('Kindly Check your internet connection')
         }
 
     }
@@ -197,19 +184,33 @@ const Task = () => {
         Tog_edit()
 
     }
+    const revertTime = (time) => {
 
+        let newHours = (Math.floor(time / 3600)).toString()
+
+        let newMinutes = ((time / 3600).toFixed(2)).toString().split('.')[1]
+
+        return (newHours + ':' + newMinutes)
+
+    }
     const getTask = async () => {
+        setLoading(true)
+        setEditErrorMessage('')
 
-        console.log(taskId)
         try {
             const res = await GetTask(taskId)
 
+
             setTaskDetails(res.payload)
+            setTaskTime(revertTime(res.payload.task_time))
+            setAssigned_user_id(res.payload.assigned_user)
+            setLoading(false)
+
+
         }
         catch {
-            setTimeout(function () {
-                setErrorMessage('Failed to Load Task')
-            }, 2500)
+            setLoading(false)
+            setEditErrorMessage('Kindly Check your internet connection')
         }
     }
     useEffect(() => {
@@ -217,7 +218,9 @@ const Task = () => {
 
     }, [])
     const deleteTask = async (e) => {
+        setLoading(true)
         e.preventDefault()
+        setEditErrorMessage('')
 
         try {
             const res = await DeleteTask(taskId)
@@ -225,45 +228,44 @@ const Task = () => {
             if (res.type === 'DELETE_TASK') {
                 Tog_edit()
                 getAllTask()
-                setModalData('Task deleted Successfully')
+
+                setLoading(false)
 
             }
             else {
-                setModalData('Task was not Deleted')
+                setLoading(false)
             }
 
         }
         catch {
 
-            setTimeout(
-                setErrorMessage('Kindly Check your Internet')
-                , 2500)
+            setLoading(false)
+            setEditErrorMessage('Kindly check your internet connection')
         }
 
     }
+
     const editTask = async (e) => {
+        setEditErrorMessage('')
         e.preventDefault()
-        const taskId = JSON.parse(localStorage.getItem("task_id"))
+        setLoading(true)
         try {
-            const res = await EditTask(taskId, assignUserId, date, timeConvert(time), 0, offset, description)
+            const res = await EditTask(taskId, assignUserId || assigned_user_id, date || taskDetails.task_date, timeConvert(time) || taskTime, 0, offset || taskDetails.offset, description || taskDetails.description)
 
             if (res.type === 'EDIT_TASK') {
 
                 Tog_edit()
                 getAllTask()
+                setLoading(false)
             }
             else {
-                setTimeout(function () {
-                    setErrorMessage('Failed to Edit Test')
-                }, 2500)
+                setLoading(false)
             }
 
         }
         catch {
-
-            setTimeout(function () {
-                setErrorMessage('Failed to Edit Task')
-            }, 2500)
+            setLoading(false)
+            setEditErrorMessage('Kindly check your internet connection')
         }
     }
     return (
@@ -294,6 +296,7 @@ const Task = () => {
                 <ModalBody className="reset-password " style={{ margin: 'auto' }}>
                     <form className='add-task-form'  >
                         <h1>Add Task</h1>
+                        <p style={{ color: '#d26466', fontSize: '0.8em', fontWeight: 'bold', marginLeft: '0.5em' }}>{addErrorMessage}</p>
                         <label htmlFor='description'>
                             Task description
                         </label>
@@ -351,10 +354,10 @@ const Task = () => {
                 </ModalBody>
             </Modal>
 
-            {showForm === false && showEdit == false &&
+            {showForm === false && showEdit === false &&
                 <div className='task-list'>
 
-                    <p style={{ color: 'red', fontSize: 'bold' }}>{errorMessage} </p>
+                    <p style={{ color: '#d26466', fontSize: '0.8em', fontWeight: 'bold', marginLeft: '0.5em' }}>{errorMessage}</p>
 
 
 
@@ -395,6 +398,7 @@ const Task = () => {
                 <ModalBody>
                     <form className='add-task-form' >
                         <h1>Edit Task</h1>
+                        <p style={{ color: '#d26466', fontSize: '0.8em', fontWeight: 'bold', marginLeft: '0.5em' }}>{editErrorMessage}</p>
                         <label htmlFor='description'>
                             Task description
                         </label>
@@ -407,7 +411,7 @@ const Task = () => {
 
                             <label className='time' htmlFor='time'>
                                 <p>Time</p>
-                                <input type="time" value={time || taskDetails.task_time} onChange={(e) => setTime(e.target.value)} />
+                                <input type="time" value={time || taskTime} onChange={(e) => setTime(e.target.value)} />
                             </label>
 
                         </div>
@@ -422,7 +426,7 @@ const Task = () => {
                         >
                             <DropdownToggle caret>
 
-                                {assignUserName || taskDetails.assigned_user}
+                                {assignUserName || taskDetails.assigned_user_name}
                             </DropdownToggle>
                             <DropdownMenu className={assign_dropdown ? 'showList' : 'hide'}>
                                 {
@@ -447,8 +451,7 @@ const Task = () => {
                     </form>
                 </ModalBody>
             </Modal>
-            <SuccessNotification modalState={modalSuccess}>{modalData}</SuccessNotification>
-            <ErrorNotification modalState={modalError}>{modalData}</ErrorNotification>
+
         </div>
     )
 }
